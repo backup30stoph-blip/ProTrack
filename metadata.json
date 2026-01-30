@@ -1,0 +1,5 @@
+{
+  "name": "ProTrack - Production Tracking System",
+  "description": "A comprehensive production tracking application for managing shift data, shipment orders, and analytics across industrial operations.",
+  "requestFramePermissions": []
+}
