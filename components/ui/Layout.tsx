@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, PlusCircle, History, Settings, BarChart3, ChevronLeft, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, History, Settings, BarChart3, PanelLeftClose, PanelLeftOpen, ClipboardList } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activeView: 'dashboard' | 'entry' | 'history' | 'settings';
-  setActiveView: (view: 'dashboard' | 'entry' | 'history' | 'settings') => void;
+  activeView: 'dashboard' | 'entry' | 'history' | 'settings' | 'program';
+  setActiveView: (view: 'dashboard' | 'entry' | 'history' | 'settings' | 'program') => void;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, activeView, setActiveView }) => {
@@ -15,61 +15,58 @@ const Layout: React.FC<LayoutProps> = ({ children, activeView, setActiveView }) 
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'entry', label: 'New Entry', icon: PlusCircle },
     { id: 'history', label: 'History', icon: History },
+    { id: 'program', label: 'Program', icon: ClipboardList },
     { id: 'settings', label: 'Settings', icon: Settings },
   ] as const;
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-slate-50">
-      {/* Sidebar for Desktop */}
+    <div className="min-h-screen flex flex-col md:flex-row bg-[#f8fafc]">
+      {/* Sidebar with Cosumar Gradient */}
       <aside 
-        className={`hidden md:flex bg-indigo-900 text-white flex-col h-screen sticky top-0 transition-all duration-300 ease-in-out border-r border-indigo-800 ${
-          isCollapsed ? 'w-20' : 'w-64'
+        className={`hidden md:flex bg-gradient-to-b from-cosumar-blue to-cosumar-dark text-white flex-col h-screen sticky top-0 transition-all duration-300 ease-in-out shadow-2xl z-50 ${
+          isCollapsed ? 'w-20' : 'w-72'
         }`}
       >
-        <div className={`p-6 flex items-center justify-between border-b border-indigo-800/50 h-[73px]`}>
+        <div className={`p-6 flex items-center justify-between border-b border-white/10 h-[73px]`}>
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="p-1.5 bg-emerald-500/10 rounded-lg shrink-0">
-              <BarChart3 className="w-8 h-8 text-emerald-400" />
+            <div className="p-2 bg-cosumar-gold rounded-xl shrink-0">
+              <BarChart3 className="w-6 h-6 text-cosumar-blue" />
             </div>
             {!isCollapsed && (
-              <h1 className="font-bold text-xl tracking-tight animate-in fade-in slide-in-from-left-2 duration-300">
-                ProTrack
+              <h1 className="font-black text-xl tracking-tighter animate-in fade-in slide-in-from-left-2 duration-300">
+                PRO<span className="text-cosumar-gold">TRACK</span>
               </h1>
             )}
           </div>
           <button 
             onClick={toggleSidebar}
-            className="p-1.5 hover:bg-indigo-800 rounded-lg text-indigo-300 transition-colors"
-            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            className="p-1.5 hover:bg-white/10 rounded-lg text-white/70 transition-colors"
           >
             {isCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
           </button>
         </div>
         
-        <nav className="flex-1 p-4 space-y-2 mt-4 overflow-hidden">
+        <nav className="flex-1 p-4 space-y-2 mt-6">
           {navItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveView(item.id)}
-              title={isCollapsed ? item.label : undefined}
-              className={`w-full flex items-center transition-all duration-200 group ${
-                isCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3 justify-start gap-3'
-              } rounded-[10px] ${
+              className={`w-full flex items-center transition-all duration-300 group ${
+                isCollapsed ? 'justify-center px-0 py-4' : 'px-5 py-3.5 justify-start gap-4'
+              } rounded-xl ${
                 activeView === item.id 
-                  ? 'bg-indigo-700 text-white shadow-lg' 
-                  : 'text-indigo-100 hover:bg-indigo-800/50 hover:text-white'
+                  ? 'bg-cosumar-gold text-cosumar-blue shadow-lg scale-[1.02] font-black' 
+                  : 'text-white/80 hover:bg-white/5 hover:text-white'
               }`}
             >
               <item.icon 
-                size={20} 
-                className={`shrink-0 transition-transform ${
-                  activeView === item.id ? 'text-white' : 'text-indigo-300 group-hover:scale-110'
-                }`} 
+                size={22} 
+                className={`shrink-0 transition-transform ${activeView === item.id ? 'scale-110' : 'group-hover:scale-110'}`} 
               />
               {!isCollapsed && (
-                <span className="font-medium whitespace-nowrap animate-in fade-in slide-in-from-left-1 duration-200">
+                <span className="text-sm tracking-wide animate-in fade-in slide-in-from-left-1 duration-200">
                   {item.label}
                 </span>
               )}
@@ -77,44 +74,49 @@ const Layout: React.FC<LayoutProps> = ({ children, activeView, setActiveView }) 
           ))}
         </nav>
         
-        <div className={`p-6 text-xs text-indigo-300 border-t border-indigo-800/50 overflow-hidden transition-opacity duration-300 ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}>
-          {!isCollapsed && <span className="whitespace-nowrap">&copy; 2026 ProTrack v1.0.2</span>}
+        <div className={`p-8 text-[10px] font-bold text-white/40 border-t border-white/10 transition-opacity duration-300 ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}>
+          {!isCollapsed && <span className="uppercase tracking-widest">Powered by Cosumar Logic</span>}
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 pb-24 md:pb-0 overflow-y-auto min-w-0">
-        <header className="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-30 flex items-center justify-between h-[73px]">
-          <div className="flex items-center gap-2 md:hidden">
-            <BarChart3 className="w-6 h-6 text-indigo-600" />
-            <h1 className="font-bold text-lg text-slate-800">ProTrack</h1>
+      {/* Main Content with soft header */}
+      <main className="flex-1 pb-24 md:pb-0 overflow-y-auto">
+        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 sticky top-0 z-30 flex items-center justify-between h-[73px]">
+          <div className="flex items-center gap-3 md:hidden">
+            <div className="p-2 bg-cosumar-blue rounded-lg">
+              <BarChart3 className="w-5 h-5 text-cosumar-gold" />
+            </div>
+            <h1 className="font-black text-xl text-cosumar-blue">PRO<span className="text-cosumar-gold">TRACK</span></h1>
           </div>
-          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider hidden md:block">
-            {navItems.find(i => i.id === activeView)?.label}
+          <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] hidden md:block">
+            SYSTEM // {navItems.find(i => i.id === activeView)?.label}
           </h2>
-          <div className="flex items-center gap-3">
-             <div className="h-2 w-2 rounded-[10px] bg-emerald-500 animate-pulse"></div>
-             <span className="text-sm font-medium text-slate-600">System Ready</span>
+          <div className="flex items-center gap-4">
+             <div className="hidden sm:flex flex-col text-right">
+                <span className="text-[10px] font-black text-slate-300 uppercase leading-none mb-1">Status</span>
+                <span className="text-xs font-bold text-cosumar-blue">Operational</span>
+             </div>
+             <div className="h-2.5 w-2.5 rounded-full bg-cosumar-gold shadow-[0_0_10px_#ffcc00] animate-pulse"></div>
           </div>
         </header>
         
-        <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="p-6 md:p-10 max-w-7xl mx-auto">
           {children}
         </div>
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex justify-around md:hidden z-40 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+      <nav className="fixed bottom-0 left-0 right-0 bg-cosumar-blue border-t border-white/10 px-6 py-4 flex justify-around md:hidden z-40 shadow-[0_-10px_25px_rgba(0,0,0,0.1)]">
         {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setActiveView(item.id)}
-            className={`flex flex-col items-center gap-1 transition-all ${
-              activeView === item.id ? 'text-indigo-600' : 'text-slate-400'
+            className={`flex flex-col items-center gap-1.5 transition-all ${
+              activeView === item.id ? 'text-cosumar-gold scale-110' : 'text-white/60'
             }`}
           >
-            <item.icon size={24} strokeWidth={activeView === item.id ? 2.5 : 2} />
-            <span className="text-[10px] font-bold uppercase">{item.label}</span>
+            <item.icon size={22} />
+            <span className="text-[8px] font-black uppercase tracking-tighter">{item.label}</span>
           </button>
         ))}
       </nav>

@@ -1,54 +1,59 @@
 
 export enum PlatformType {
-  BIG_BAG = 'Big Bag',
-  FIFTY_KG = '50kg'
+  BIG_BAG = 'BIG_BAG', // Matches SQL Check constraint
+  FIFTY_KG = '50KG'    // Matches SQL Check constraint
 }
 
 export enum OrderType {
-  EXPORT = 'Export',
-  LOCAL = 'Local',
-  DEBARDAGE = 'Debardage'
+  EXPORT = 'EXPORT',
+  LOCAL = 'LOCAL',
+  DEBARDAGE = 'DEBARDAGE'
 }
 
 export enum ShiftType {
-  MORNING = 'Morning Shift 06h00 to 14h00',
-  AFTERNOON = 'AfterNoon 14h00 to 22h00',
-  NIGHT = 'Night 22h00 to 06h00'
+  MORNING = 'MORNING',
+  AFTERNOON = 'AFTERNOON',
+  NIGHT = 'NIGHT'
 }
 
 export enum PalletType {
-  AVEC_PALET = 'Avec Palet',
-  SANS_PALET = 'Sans Palet',
-  PALET_PLASTIC = 'Palet Plastic'
+  AVEC_PALET = 'AVEC_PALET',
+  SANS_PALET = 'SANS_PALET',
+  PLASTIQUE = 'PLASTIQUE'
 }
 
 export interface ProductionOrder {
-  id: string;
-  type: OrderType;
-  articleCode: string;
-  opsName?: string;
-  blNumber?: string;
-  tcNumber?: string;
-  sealNumber?: string;
-  truckMatricule?: string;
-  count: number;
-  weightPerUnit: number; // in Tonnes
-  columns: number;
-  palletType: PalletType;
-  calculatedTonnage: number;
-  timestamp: number;
+  id?: string; // Optional because DB generates it
+  entry_id?: string;
+  order_type: OrderType;
+  article_code: string;
+  dossier_number?: string;
+  sap_code?: string;
+  maritime_agent?: string;
+  ops_name?: string;
+  bl_number?: string;
+  tc_number?: string;
+  seal_number?: string;
+  truck_matricule?: string;
+  order_count: number;
+  unit_weight: number; 
+  configured_columns: number;
+  pallet_type: PalletType;
+  calculated_tonnage: number;
+  created_at?: string;
 }
 
 export interface ProductionEntry {
   id: string;
-  date: string;
+  entry_date: string;
   shift: ShiftType;
   platform: PlatformType;
-  operatorName: string;
-  orders: ProductionOrder[];
-  totalTonnage: number;
-  submittedAt: number;
+  operator_name: string;
   notes?: string;
+  total_tonnage: number;
+  total_orders: number;
+  orders: ProductionOrder[]; // Joined from production_orders table
+  submitted_at?: string;
 }
 
 export interface SummaryStats {
@@ -58,4 +63,19 @@ export interface SummaryStats {
   localTonnage: number;
   debardageTonnage: number;
   entryCount: number;
+  uniqueDossiers: number;
+}
+
+export interface MasterProgramEntry {
+  id: number;
+  pic: string;
+  dossier_number: string;
+  sap_code: string;
+  destination: string;
+  nbre: number;
+  qte: number;
+  maritime: string;
+  date_debut: string;
+  date_limite: string;
+  comments: string;
 }

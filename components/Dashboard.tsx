@@ -1,26 +1,27 @@
-
 import React, { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { ProductionEntry } from '../types';
 import { calculateSummaryStats, formatTonnage } from '../utils/calculations';
-import { TrendingUp, Package, Truck, ArrowUpRight } from 'lucide-react';
+import { TrendingUp, Package, Truck, ArrowUpRight, Hash } from 'lucide-react';
 
 interface DashboardProps {
   entries: ProductionEntry[];
+  isLoading?: boolean;
 }
 
-const COLORS = ['#10b981', '#6366f1', '#f59e0b'];
+const BRAND_COLORS = ['#004b9d', '#00a4e4', '#ffcc00'];
 
-const Dashboard: React.FC<DashboardProps> = ({ entries }) => {
+const Dashboard: React.FC<DashboardProps> = ({ entries, isLoading }) => {
   const stats = useMemo(() => calculateSummaryStats(entries), [entries]);
 
   const chartData = useMemo(() => {
+    // Ensure we are accessing the correct snake_case properties from the DB
     return [...entries]
       .reverse()
       .slice(-10)
       .map(e => ({
-        date: new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        tonnage: e.totalTonnage,
+        date: new Date(e.entry_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        tonnage: Number(e.total_tonnage), // Ensure number type
         shift: e.shift.split(' ')[0]
       }));
   }, [entries]);
@@ -31,134 +32,101 @@ const Dashboard: React.FC<DashboardProps> = ({ entries }) => {
     { name: 'Debardage', value: stats.debardageTonnage },
   ].filter(d => d.value > 0);
 
-  if (entries.length === 0) {
+  if (isLoading) {
     return (
-      <div className="bg-white rounded-[10px] p-12 text-center border border-slate-200 shadow-sm">
-        <div className="bg-indigo-50 w-20 h-20 rounded-[10px] flex items-center justify-center mx-auto mb-6">
-          <TrendingUp className="w-10 h-10 text-indigo-500" />
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 h-32 animate-pulse"></div>
+          ))}
         </div>
-        <h3 className="text-2xl font-bold text-slate-800 mb-2">No production data yet</h3>
-        <p className="text-slate-500 max-w-md mx-auto mb-8">Start recording shift entries to see analytics and trends across your operations.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <StatCard 
-          label="Total Production" 
-          value={formatTonnage(stats.totalTonnage)} 
-          subtext={`${stats.entryCount} total entries`}
-          icon={<Package className="text-indigo-600" size={24} />}
-          color="bg-indigo-50"
-        />
-        <StatCard 
-          label="Avg per Shift" 
-          value={formatTonnage(stats.averageTonnage)} 
-          subtext="Lifetime average"
-          icon={<TrendingUp className="text-emerald-600" size={24} />}
-          color="bg-emerald-50"
-        />
-        <StatCard 
-          label="Export Focus" 
-          value={formatTonnage(stats.exportTonnage)} 
-          subtext={`${((stats.exportTonnage / stats.totalTonnage) * 100).toFixed(1)}% of total`}
-          icon={<Truck className="text-amber-600" size={24} />}
-          color="bg-amber-50"
-        />
-        <StatCard 
-          label="Operational Units" 
-          value={stats.entryCount.toString()} 
-          subtext="Shifts tracked"
-          icon={<ArrowUpRight className="text-rose-600" size={24} />}
-          color="bg-rose-50"
-        />
+    <div className="space-y-8 animate-in fade-in duration-700">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard label="Total Production" value={formatTonnage(stats.totalTonnage)} subtext={`${stats.entryCount} sessions`} icon={<Package size={24} />} color="bg-cosumar-blue text-white" />
+        <StatCard label="Avg per Shift" value={formatTonnage(stats.averageTonnage)} subtext="Efficiency rating" icon={<TrendingUp size={24} />} color="bg-cosumar-gold text-cosumar-blue" />
+        <StatCard label="Live Dossiers" value={stats.uniqueDossiers.toString()} subtext="System master data" icon={<Hash size={24} />} color="bg-cosumar-sky text-white" />
+        <StatCard label="System Status" value="Active" subtext="All lines operational" icon={<ArrowUpRight size={24} />} color="bg-white text-cosumar-blue border border-slate-200" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Trend Chart */}
-        <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-[10px] border border-slate-200 shadow-sm">
+        <div className="lg:col-span-2 bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="font-bold text-slate-800 text-lg">Production Trend</h3>
-            <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-[10px] font-medium">Last 10 Entries</span>
+            <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest">Production Performance</h3>
+            <span className="text-[10px] font-black text-slate-300">Last 10 Records</span>
           </div>
-          <div style={{ width: '100%', height: '300px', minHeight: '300px' }}>
-            <ResponsiveContainer width="100%" height="100%">
+          <div style={{ width: '100%', height: '320px' }}>
+            <ResponsiveContainer>
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorTonnage" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#004b9d" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#004b9d" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
-                  itemStyle={{ fontWeight: 600, color: '#6366f1' }}
-                />
-                <Area type="monotone" dataKey="tonnage" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorTonnage)" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} />
+                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: 'bold' }} />
+                <Area type="monotone" dataKey="tonnage" stroke="#004b9d" strokeWidth={4} fill="url(#colorTonnage)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Distribution Pie Chart */}
-        <div className="bg-white p-6 md:p-8 rounded-[10px] border border-slate-200 shadow-sm flex flex-col">
-          <h3 className="font-bold text-slate-800 text-lg mb-8">Distribution</h3>
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <div style={{ width: '100%', height: '250px', minHeight: '250px' }}>
-               <ResponsiveContainer width="100%" height="100%">
+        <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm flex flex-col">
+          <h3 className="font-black text-slate-800 text-sm mb-8 uppercase tracking-widest text-center">Output Distribution</h3>
+          {pieData.length > 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={8}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
+                  <Pie data={pieData} innerRadius={70} outerRadius={90} paddingAngle={10} dataKey="value" stroke="none">
+                    {pieData.map((_, index) => <Cell key={`cell-${index}`} fill={BRAND_COLORS[index % BRAND_COLORS.length]} />)}
                   </Pie>
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
-            <div className="grid grid-cols-1 gap-3 w-full mt-4">
-              {pieData.map((d, i) => (
-                <div key={d.name} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-[10px]" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
-                    <span className="text-slate-600 font-medium">{d.name}</span>
+              <div className="w-full space-y-4 mt-6">
+                {pieData.map((d, i) => (
+                  <div key={d.name} className="flex justify-between text-[11px] font-black uppercase tracking-wider">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: BRAND_COLORS[i % BRAND_COLORS.length] }}></div>
+                      <span className="text-slate-500">{d.name}</span>
+                    </div>
+                    <span className="text-cosumar-blue">{((d.value / stats.totalTonnage) * 100).toFixed(0)}%</span>
                   </div>
-                  <span className="text-slate-900 font-bold">{((d.value / stats.totalTonnage) * 100).toFixed(0)}%</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-slate-300">
+               <Package size={48} className="mb-2 opacity-20"/>
+               <span className="text-xs font-black uppercase tracking-widest opacity-40">No Data Available</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-const StatCard: React.FC<{ label: string; value: string; subtextText?: string; subtext: string; icon: React.ReactNode; color: string }> = ({ label, value, subtext, icon, color }) => (
-  <div className="bg-white p-6 rounded-[10px] border border-slate-200 shadow-sm hover:shadow-md transition-shadow group">
-    <div className="flex items-center justify-between mb-4">
-      <div className={`p-3 rounded-[10px] ${color} transition-transform group-hover:scale-110`}>
-        {icon}
-      </div>
+const StatCard = ({ label, value, subtext, icon, color }: any) => (
+  <div className={`p-8 rounded-2xl shadow-sm transition-all duration-300 hover:scale-[1.02] flex flex-col bg-white border border-slate-100 relative overflow-hidden group`}>
+    <div className={`p-4 rounded-xl mb-6 w-fit ${color} shadow-lg transition-transform group-hover:rotate-6`}>
+      {icon}
     </div>
-    <div className="space-y-1">
-      <h4 className="text-slate-500 font-medium text-sm">{label}</h4>
-      <div className="text-2xl font-bold text-slate-900">{value}</div>
-      <p className="text-slate-400 text-xs font-medium">{subtext}</p>
+    <div className="space-y-1 relative z-10">
+      <h4 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">{label}</h4>
+      <div className="text-3xl font-black text-slate-900 tracking-tighter">{value}</div>
+      <p className="text-slate-400 text-[10px] font-bold uppercase tracking-tight">{subtext}</p>
+    </div>
+    <div className="absolute -right-4 -bottom-4 opacity-[0.03] text-slate-900 group-hover:scale-125 transition-transform">
+       {/* Clone to add size prop */}
+       {icon && React.cloneElement(icon as React.ReactElement<any>, { size: 120 })}
     </div>
   </div>
 );

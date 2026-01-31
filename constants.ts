@@ -17,11 +17,11 @@ export const ORDER_CONFIGS = {
     defaultPallet: PalletType.AVEC_PALET
   },
   [OrderType.DEBARDAGE]: {
-    columns: 1, // Changed to 1 because input is now directly the number of COLs
+    columns: 1,
     defaultWeight: 1.2,
     articles: ['4303'],
     fixedWeight: true,
-    defaultPallet: PalletType.PALET_PLASTIC
+    defaultPallet: PalletType.PLASTIQUE
   },
 };
 
