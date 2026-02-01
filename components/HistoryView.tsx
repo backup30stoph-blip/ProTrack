@@ -27,7 +27,6 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
   const [selectedEntry, setSelectedEntry] = useState<ProductionEntry | null>(null);
   const [entryToDelete, setEntryToDelete] = useState<ProductionEntry | null>(null);
   
-  // Sorting state
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
@@ -43,7 +42,6 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
   const filteredAndSortedEntries = useMemo(() => {
     let result = entries.filter(entry => {
       const searchLower = searchTerm.toLowerCase();
-      // Ensure orders is an array before using .some()
       const hasMatchingOrder = Array.isArray(entry.orders) && entry.orders.some(o => 
         (o.article_code && o.article_code.toLowerCase().includes(searchLower)) ||
         (o.dossier_number && o.dossier_number.toLowerCase().includes(searchLower)) ||
@@ -79,7 +77,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
           comparison = a.operator_name.localeCompare(b.operator_name);
           break;
         case 'tonnage':
-          comparison = a.total_tonnage - b.total_tonnage;
+          comparison = Number(a.total_tonnage) - Number(b.total_tonnage);
           break;
       }
       return sortOrder === 'asc' ? comparison : -comparison;
@@ -90,25 +88,10 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
 
   const exportCSV = () => {
     const headers = [
-      'Date', 
-      'Shift', 
-      'Platform', 
-      'Operator', 
-      'Category', 
-      'Article Code', 
-      'N Dossier',
-      'CDE SAP',
-      'Ops/Destination', 
-      'N BL',
-      'N TC',
-      'N Plombe',
-      'Truck Matricule',
-      'Qty (Trucks/Cols)', 
-      'Weight/Unit (T)', 
-      'Columns', 
-      'Pallet Config', 
-      'Line Tonnage', 
-      'Shift Notes'
+      'Date', 'Shift', 'Platform', 'Operator', 'Category', 'Article Code', 
+      'N Dossier', 'CDE SAP', 'Ops/Destination', 'N BL', 'N TC', 'N Plombe', 
+      'Truck Matricule', 'Qty (Trucks/Cols)', 'Weight/Unit (T)', 
+      'Columns', 'Pallet Config', 'Line Tonnage', 'Shift Notes'
     ];
 
     const rows: string[][] = [];
@@ -148,7 +131,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     
     a.href = url;
-    a.download = `protrack-production-export-${timestamp}.csv`;
+    a.download = `protrack-export-${timestamp}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -182,49 +165,17 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
     </button>
   );
 
-  // Loading Skeleton
   if (isLoading) {
     return (
       <div className="space-y-6">
-        {/* Filter Bar Skeleton */}
-        <div className="bg-white p-6 rounded-[10px] border border-slate-200 h-48 animate-pulse">
-           <div className="h-10 w-full bg-slate-100 rounded-[10px] mb-6"></div>
-           <div className="h-4 w-32 bg-slate-100 rounded mb-4"></div>
-           <div className="flex gap-2 mb-6">
-             {[1,2,3,4].map(i => <div key={i} className="h-8 w-24 bg-slate-100 rounded-[10px]"></div>)}
-           </div>
-        </div>
-
-        {/* Grid Skeleton (Mobile) */}
-        <div className="md:hidden grid grid-cols-1 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-[10px] border border-slate-200 h-[280px] p-6 animate-pulse"></div>
-          ))}
-        </div>
-
-        {/* Table Skeleton (Desktop) */}
-        <div className="hidden md:block bg-white rounded-[10px] border border-slate-200 overflow-hidden">
-          <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex gap-4">
-             {[1,2,3,4,5,6].map(i => <div key={i} className="h-4 bg-slate-200 rounded w-full"></div>)}
-          </div>
-          {[1,2,3,4,5].map(i => (
-             <div key={i} className="p-4 border-b border-slate-50 flex gap-4">
-               <div className="h-8 bg-slate-100 rounded w-full"></div>
-               <div className="h-8 bg-slate-100 rounded w-full"></div>
-               <div className="h-8 bg-slate-100 rounded w-full"></div>
-               <div className="h-8 bg-slate-100 rounded w-full"></div>
-               <div className="h-8 bg-slate-100 rounded w-full"></div>
-               <div className="h-8 bg-slate-100 rounded w-full"></div>
-             </div>
-          ))}
-        </div>
+        <div className="bg-white p-6 rounded-[10px] border border-slate-200 h-48 animate-pulse"></div>
+        <div className="hidden md:block bg-white rounded-[10px] border border-slate-200 overflow-hidden h-96 animate-pulse"></div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Filters Bar */}
       <div className="bg-white p-6 rounded-[10px] border border-slate-200 shadow-sm space-y-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
@@ -240,7 +191,6 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
           <div className="flex gap-2">
             <button
               onClick={exportCSV}
-              title="Download detailed transaction report"
               className="flex items-center justify-center gap-2 w-full md:w-auto px-6 py-3 bg-indigo-600 text-white font-bold rounded-[10px] hover:bg-indigo-700 transition-all border border-indigo-700 shadow-lg shadow-indigo-200"
             >
               <FileDown size={18} />
@@ -256,46 +206,22 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
           
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-2 px-2 scroll-smooth">
-                <button 
-                  onClick={() => setFilterShift('All')}
-                  className={`px-4 py-2.5 rounded-[10px] text-[10px] font-black uppercase tracking-tight whitespace-nowrap transition-all ${filterShift === 'All' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                >
-                  All Shifts
-                </button>
+                <button onClick={() => setFilterShift('All')} className={`px-4 py-2.5 rounded-[10px] text-[10px] font-black uppercase tracking-tight whitespace-nowrap transition-all ${filterShift === 'All' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>All Shifts</button>
                 {SHIFTS.map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setFilterShift(s)}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-[10px] text-[10px] font-black uppercase tracking-tight whitespace-nowrap transition-all ${filterShift === s ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                  >
-                    {getShiftIcon(s, 14)}
-                    {s}
-                  </button>
+                  <button key={s} onClick={() => setFilterShift(s)} className={`flex items-center gap-2 px-4 py-2.5 rounded-[10px] text-[10px] font-black uppercase tracking-tight whitespace-nowrap transition-all ${filterShift === s ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>{getShiftIcon(s, 14)} {s}</button>
                 ))}
             </div>
 
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-2 px-2 scroll-smooth">
-                <button 
-                  onClick={() => setFilterPlatform('All')}
-                  className={`px-4 py-2.5 rounded-[10px] text-[10px] font-black uppercase tracking-tight whitespace-nowrap transition-all ${filterPlatform === 'All' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                >
-                  All Platforms
-                </button>
+                <button onClick={() => setFilterPlatform('All')} className={`px-4 py-2.5 rounded-[10px] text-[10px] font-black uppercase tracking-tight whitespace-nowrap transition-all ${filterPlatform === 'All' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>All Platforms</button>
                 {PLATFORMS.map(p => (
-                  <button
-                    key={p}
-                    onClick={() => setFilterPlatform(p)}
-                    className={`px-4 py-2.5 rounded-[10px] text-[10px] font-black uppercase tracking-tight whitespace-nowrap transition-all ${filterPlatform === p ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                  >
-                    {p}
-                  </button>
+                  <button key={p} onClick={() => setFilterPlatform(p)} className={`px-4 py-2.5 rounded-[10px] text-[10px] font-black uppercase tracking-tight whitespace-nowrap transition-all ${filterPlatform === p ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>{p}</button>
                 ))}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Sorting Header Bar (Mobile Only) */}
       <div className="md:hidden flex items-center justify-between px-2 bg-slate-100/50 rounded-[10px] border border-slate-200/50">
         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-1">
           <button onClick={() => handleSort('date')} className={`px-3 py-2 text-[10px] font-bold rounded ${sortField === 'date' ? 'text-indigo-600 bg-white shadow-sm' : 'text-slate-400'}`}>Date</button>
@@ -314,7 +240,6 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
         </div>
       ) : (
         <>
-          {/* Card View (Mobile) */}
           <div className="md:hidden grid grid-cols-1 gap-6">
             {filteredAndSortedEntries.map((entry) => (
               <div key={entry.id} className="bg-white rounded-[10px] border border-slate-200 shadow-sm p-6 flex flex-col">
@@ -326,7 +251,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
                     </div>
                   </div>
                   <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-[10px] font-black text-sm">
-                    {formatTonnage(entry.total_tonnage)}
+                    {formatTonnage(Number(entry.total_tonnage))}
                   </div>
                 </div>
                 <div className="flex items-center gap-3 mb-6 p-3 bg-slate-50 rounded-[10px]">
@@ -342,9 +267,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
             ))}
           </div>
 
-          {/* Data Grid View (Desktop) */}
           <div className="hidden md:block bg-white rounded-[10px] border border-slate-200 shadow-sm overflow-hidden">
-            {/* Grid Header */}
             <div className="grid grid-cols-6 gap-4 px-6 py-4 bg-slate-50 border-b border-slate-200">
                <SortHeaderButton field="date" label="Date" />
                <SortHeaderButton field="shift" label="Shift" />
@@ -354,7 +277,6 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
                <div className="text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</div>
             </div>
 
-            {/* Grid Rows */}
             <div className="divide-y divide-slate-100">
               {filteredAndSortedEntries.map((entry) => (
                 <div key={entry.id} className="grid grid-cols-6 gap-4 px-6 py-4 items-center hover:bg-indigo-50/30 transition-colors group">
@@ -386,7 +308,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
                   </div>
 
                   <div className="text-right">
-                    <span className="font-black text-emerald-600 text-sm">{formatTonnage(entry.total_tonnage)}</span>
+                    <span className="font-black text-emerald-600 text-sm">{formatTonnage(Number(entry.total_tonnage))}</span>
                   </div>
 
                   <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
@@ -407,7 +329,6 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
         </>
       )}
 
-      {/* Confirmation Delete Modal */}
       {entryToDelete && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-[10px] w-full max-md shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden border border-slate-200">
@@ -428,7 +349,6 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
         </div>
       )}
 
-      {/* Detail Modal */}
       {selectedEntry && (
         <div 
           className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 flex items-start justify-center p-4 md:p-8"
@@ -463,7 +383,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
                  </div>
                  <div className="p-4 bg-indigo-50/50 rounded-[10px] border border-indigo-100 col-span-2 md:col-span-1">
                    <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Total Output</div>
-                   <div className="text-2xl font-black text-emerald-600">{formatTonnage(selectedEntry.total_tonnage)}</div>
+                   <div className="text-2xl font-black text-emerald-600">{formatTonnage(Number(selectedEntry.total_tonnage))}</div>
                  </div>
               </div>
 
@@ -490,10 +410,9 @@ const HistoryView: React.FC<HistoryViewProps> = ({ entries, onDelete, onEdit, is
                             </div>
                           </div>
                         </div>
-                        <div className="text-right font-black text-slate-900 text-xl">{formatTonnage(order.calculated_tonnage)}</div>
+                        <div className="text-right font-black text-slate-900 text-xl">{formatTonnage(Number(order.calculated_tonnage))}</div>
                       </div>
                       
-                      {/* Detailed Specs */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-slate-100 rounded-[10px] overflow-hidden border border-slate-100">
                          <div className="bg-slate-50/80 p-3 flex justify-between items-center"><span className="text-[10px] font-black text-slate-400 uppercase">Quantity</span><span className="text-xs font-black text-slate-800">{order.order_count} Units</span></div>
                          <div className="bg-slate-50/80 p-3 flex justify-between items-center"><span className="text-[10px] font-black text-slate-400 uppercase">Weight</span><span className="text-xs font-black text-emerald-600">{order.unit_weight} T</span></div>

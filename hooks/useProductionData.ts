@@ -1,5 +1,6 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import { ProductionEntry, ProductionOrder } from '../types';
+import { ProductionEntry } from '../types';
 import { DRAFT_KEY } from '../constants';
 import { supabase, TABLE_NAME } from '../utils/supabase';
 
@@ -11,14 +12,14 @@ export const useProductionData = () => {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Fetch entries with their orders using the foreign key relationship
-      // Note: production_orders must reference production_entries(id)
+      // JOIN production_entries with production_orders
       const { data, error } = await supabase
         .from(TABLE_NAME)
         .select(`
           *,
           orders:production_orders(*)
         `)
+        .order('entry_date', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -38,18 +39,15 @@ export const useProductionData = () => {
   useEffect(() => {
     fetchData();
 
-    // Load local draft
     const savedDraft = localStorage.getItem(DRAFT_KEY);
     if (savedDraft) {
       try {
-        const parsed = JSON.parse(savedDraft);
-        setDraft(parsed);
+        setDraft(JSON.parse(savedDraft));
       } catch (e) {
         console.error("Draft parsing failed", e);
       }
     }
 
-    // Optional: Real-time subscription could go here
     const channel = supabase
       .channel('public:production_entries')
       .on('postgres_changes', { event: '*', schema: 'public', table: TABLE_NAME }, () => {
@@ -74,37 +72,38 @@ export const useProductionData = () => {
           operator_name: entryData.operator_name,
           notes: entryData.notes,
           submitted_at: new Date().toISOString()
+          // total_tonnage and total_orders are handled by DB triggers/functions ideally, 
+          // or calculated on fetch if not.
         }])
         .select()
         .single();
 
       if (entryError) throw entryError;
-      if (!entryResult) throw new Error("Failed to create entry record");
+      if (!entryResult) throw new Error("Entry insertion failed to return data");
 
       const newEntryId = entryResult.id;
 
       // 2. Insert Child Orders
-      // Map valid properties matching SQL columns explicitly
-      const ordersToInsert = entryData.orders.map(o => ({
-        entry_id: newEntryId,
-        order_type: o.order_type,
-        article_code: o.article_code,
-        ops_name: o.ops_name,
-        dossier_number: o.dossier_number,
-        sap_code: o.sap_code,
-        maritime_agent: o.maritime_agent,
-        bl_number: o.bl_number,
-        tc_number: o.tc_number,
-        seal_number: o.seal_number,
-        truck_matricule: o.truck_matricule,
-        order_count: o.order_count,
-        configured_columns: o.configured_columns,
-        unit_weight: o.unit_weight,
-        pallet_type: o.pallet_type,
-        calculated_tonnage: o.calculated_tonnage
-      }));
+      if (entryData.orders && entryData.orders.length > 0) {
+        const ordersToInsert = entryData.orders.map(o => ({
+          entry_id: newEntryId,
+          order_type: o.order_type,
+          article_code: o.article_code,
+          ops_name: o.ops_name,
+          dossier_number: o.dossier_number,
+          sap_code: o.sap_code,
+          maritime_agent: o.maritime_agent,
+          bl_number: o.bl_number,
+          tc_number: o.tc_number,
+          seal_number: o.seal_number,
+          truck_matricule: o.truck_matricule,
+          order_count: o.order_count,
+          configured_columns: o.configured_columns,
+          unit_weight: o.unit_weight,
+          pallet_type: o.pallet_type,
+          calculated_tonnage: o.calculated_tonnage
+        }));
 
-      if (ordersToInsert.length > 0) {
         const { error: ordersError } = await supabase
           .from('production_orders')
           .insert(ordersToInsert);
@@ -112,14 +111,14 @@ export const useProductionData = () => {
         if (ordersError) throw ordersError;
       }
 
-      // 3. Cleanup
+      // 3. Clear local state and refresh
       localStorage.removeItem(DRAFT_KEY);
       setDraft(null);
       await fetchData(); 
 
     } catch (err: any) {
-      console.error("Save Error:", err.message || err);
-      alert(`Error saving to database: ${err.message || 'Unknown error'}`);
+      console.error("Save Error:", err.message);
+      alert(`Database Error: ${err.message}`);
     }
   }, [fetchData]);
 
@@ -139,7 +138,7 @@ export const useProductionData = () => {
 
       if (entryError) throw entryError;
 
-      // Replace Orders (Delete All + Re-insert)
+      // Update Orders: Delete all and re-insert to handle additions/removals
       const { error: deleteError } = await supabase
         .from('production_orders')
         .delete()
@@ -147,32 +146,32 @@ export const useProductionData = () => {
         
        if (deleteError) throw deleteError;
 
-       const ordersToInsert = updatedEntry.orders.map(o => ({
-        entry_id: updatedEntry.id,
-        order_type: o.order_type,
-        article_code: o.article_code,
-        ops_name: o.ops_name,
-        dossier_number: o.dossier_number,
-        sap_code: o.sap_code,
-        maritime_agent: o.maritime_agent,
-        bl_number: o.bl_number,
-        tc_number: o.tc_number,
-        seal_number: o.seal_number,
-        truck_matricule: o.truck_matricule,
-        order_count: o.order_count,
-        configured_columns: o.configured_columns,
-        unit_weight: o.unit_weight,
-        pallet_type: o.pallet_type,
-        calculated_tonnage: o.calculated_tonnage
-      }));
+       if (updatedEntry.orders && updatedEntry.orders.length > 0) {
+         const ordersToInsert = updatedEntry.orders.map(o => ({
+          entry_id: updatedEntry.id,
+          order_type: o.order_type,
+          article_code: o.article_code,
+          ops_name: o.ops_name,
+          dossier_number: o.dossier_number,
+          sap_code: o.sap_code,
+          maritime_agent: o.maritime_agent,
+          bl_number: o.bl_number,
+          tc_number: o.tc_number,
+          seal_number: o.seal_number,
+          truck_matricule: o.truck_matricule,
+          order_count: o.order_count,
+          configured_columns: o.configured_columns,
+          unit_weight: o.unit_weight,
+          pallet_type: o.pallet_type,
+          calculated_tonnage: o.calculated_tonnage
+        }));
 
-      if (ordersToInsert.length > 0) {
         const { error: insertError } = await supabase
           .from('production_orders')
           .insert(ordersToInsert);
 
          if (insertError) throw insertError;
-      }
+       }
 
       await fetchData();
     } catch (err: any) {

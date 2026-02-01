@@ -66,7 +66,6 @@ const ProgramView: React.FC<ProgramViewProps> = ({ entries, masterProgram }) => 
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700">
-      {/* Search & Header Panel */}
       <div className="bg-white p-10 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="flex items-center gap-6">
           <div className="w-16 h-16 bg-cosumar-blue rounded-2xl flex items-center justify-center text-cosumar-gold shadow-xl">
@@ -89,7 +88,6 @@ const ProgramView: React.FC<ProgramViewProps> = ({ entries, masterProgram }) => 
         </div>
       </div>
 
-      {/* Dossier Grid */}
       <div className="grid grid-cols-1 gap-8">
         {dossierProgress.length === 0 ? (
           <div className="bg-white p-24 rounded-2xl border border-dashed border-slate-200 text-center opacity-30">
@@ -101,7 +99,6 @@ const ProgramView: React.FC<ProgramViewProps> = ({ entries, masterProgram }) => 
             <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-2xl hover:scale-[1.01] transition-all border-l-[12px] border-l-cosumar-blue flex flex-col lg:flex-row group relative">
               
               <div className="p-10 flex-1 grid grid-cols-1 md:grid-cols-12 gap-10">
-                {/* ID and Status Column */}
                 <div className="md:col-span-4 space-y-6">
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Program Reference</span>
@@ -131,7 +128,6 @@ const ProgramView: React.FC<ProgramViewProps> = ({ entries, masterProgram }) => 
                   </div>
                 </div>
 
-                {/* Logistics Detail Column */}
                 <div className="md:col-span-5 grid grid-cols-2 gap-y-10 gap-x-6">
                   <DetailItem icon={<MapPin size={14} className="text-cosumar-gold"/>} label="Destination" value={d.destination} />
                   <DetailItem icon={<Ship size={14} className="text-cosumar-gold"/>} label="Logistics / PIC" value={d.maritime} subValue={`Manager: ${d.pic}`} />
@@ -139,7 +135,6 @@ const ProgramView: React.FC<ProgramViewProps> = ({ entries, masterProgram }) => 
                   <DetailItem icon={<InfoIcon size={14} className="text-cosumar-gold"/>} label="Planned Units" value={`${d.nbre} Containers / Trucks`} />
                 </div>
 
-                {/* History/Pulse Column */}
                 <div className="md:col-span-3 lg:border-l border-slate-50 lg:pl-10 space-y-6">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Recent Activity</span>
@@ -167,7 +162,6 @@ const ProgramView: React.FC<ProgramViewProps> = ({ entries, masterProgram }) => 
                 </div>
               </div>
 
-              {/* Success Badge */}
               {d.percent === 100 && (
                 <div className="absolute top-4 right-4 animate-in zoom-in-50">
                   <CheckCircle2 size={32} className="text-emerald-500 drop-shadow-md" />
@@ -178,7 +172,6 @@ const ProgramView: React.FC<ProgramViewProps> = ({ entries, masterProgram }) => 
         )}
       </div>
 
-      {/* Footer Disclaimer */}
       <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 flex items-center gap-4 text-slate-400 italic text-sm">
         <Info size={18} className="shrink-0" />
         <p>This program logic automatically tracks production progress by matching "Dossier ID" or "SAP Order" fields entered during shift sessions against the Master Program data.</p>

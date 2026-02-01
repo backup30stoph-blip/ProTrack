@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Layout from './components/ui/Layout';
-import { supabase } from './utils/supabase';
 import Dashboard from './components/Dashboard';
 import EntryForm from './components/EntryForm';
 import HistoryView from './components/HistoryView';

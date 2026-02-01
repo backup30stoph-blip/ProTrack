@@ -1,7 +1,7 @@
 
 export enum PlatformType {
-  BIG_BAG = 'BIG_BAG', // Matches SQL Check constraint
-  FIFTY_KG = '50KG'    // Matches SQL Check constraint
+  BIG_BAG = 'BIG_BAG',
+  FIFTY_KG = '50KG'
 }
 
 export enum OrderType {
@@ -22,8 +22,9 @@ export enum PalletType {
   PLASTIQUE = 'PLASTIQUE'
 }
 
+// Matches 'production_orders' table
 export interface ProductionOrder {
-  id?: string; // Optional because DB generates it
+  id?: string;
   entry_id?: string;
   order_type: OrderType;
   article_code: string;
@@ -43,6 +44,7 @@ export interface ProductionOrder {
   created_at?: string;
 }
 
+// Matches 'production_entries' table
 export interface ProductionEntry {
   id: string;
   entry_date: string;
@@ -52,7 +54,7 @@ export interface ProductionEntry {
   notes?: string;
   total_tonnage: number;
   total_orders: number;
-  orders: ProductionOrder[]; // Joined from production_orders table
+  orders: ProductionOrder[]; // Joined property
   submitted_at?: string;
 }
 
@@ -66,6 +68,7 @@ export interface SummaryStats {
   uniqueDossiers: number;
 }
 
+// Matches 'master_program' table
 export interface MasterProgramEntry {
   id: number;
   pic: string;
